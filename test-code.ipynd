@@ -13,3 +13,5 @@ df["age"].fillna(df["age"].median(), inplace=True)
 df["salary"].fillna(df["salary"].median(), inplace=True)
 
 print(df.describe())
+
+print(df.shape())
