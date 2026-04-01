@@ -22,3 +22,17 @@ data = pd.read_csv(data_path)
 
 print(data.head())
 print(data.shape)
+
+# Checking for missining values 
+missing = pd.DataFrame({
+    "Missing Count": data.isnull().sum(),
+    "Missing %": (data.isnull().sum() / len(data)) * 100
+})
+
+print(missing)
+
+total_missing = data.isnull().sum().sum()
+total_values = data.size
+
+percentage_missing = (total_missing / total_values) * 100
+print("Total Missing %:", percentage_missing)
