@@ -59,3 +59,93 @@ df_model['week_index'] = np.arange(len(df_model))
 
 print(df_model.head())
 print(data.shape)
+
+# ==========================================
+# Prepare Data
+# ==========================================
+df = df_model.copy()
+
+# Ensure datetime index and sorted order
+df.index = pd.to_datetime(df.index)
+df = df.sort_index()
+
+features = ['affiliates', 'facebook', 'google', 'tv', 'week_index']
+target = 'applications'
+
+X = df[features]
+y = df[target]
+
+# ==========================================
+# Train/Test Split (Time-based)
+# ==========================================
+split_index = int(len(df) * 0.8)
+
+X_train = X.iloc[:split_index]
+X_test  = X.iloc[split_index:]
+
+y_train = y.iloc[:split_index]
+y_test  = y.iloc[split_index:]
+
+# ==========================================
+# Fit Linear Regression Model
+# ==========================================
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# ==========================================
+# Model Results
+# ==========================================
+print("Intercept:", model.intercept_)
+print("\nCoefficients:")
+for feature, coef in zip(features, model.coef_):
+    print(f"{feature}: {coef}")
+
+# ==========================================
+# Predictions & Evaluation
+# ==========================================
+y_pred = model.predict(X_test)
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
+
+print("\nTest Performance")
+print("RMSE:", rmse)
+print("R²:", r2)
+
+# ==========================================
+# Plot Actual vs Predicted
+# ==========================================
+plt.figure()
+plt.plot(y_test.index, y_test.values, label='Actual')
+plt.plot(y_test.index, y_pred, linestyle='--', label='Predicted')
+plt.title("Actual vs Predicted Applications")
+plt.xticks(rotation=45)
+plt.legend()
+
+plt.savefig("actual_vs_predicted.png")  # saves plot to a file
+plt.close()  # closes the figure to free memory
+
+# ==========================================
+# Normalized Spend vs Coefficient
+# ==========================================
+coef_df = pd.DataFrame({
+    'feature': features,
+    'coefficient': model.coef_
+})
+coef_df_plot = coef_df[coef_df['feature'] != 'week_index']
+cost_totals = df[['affiliates', 'facebook', 'google', 'tv']].sum()
+
+comparison_df = pd.DataFrame({
+    'Total Spend': cost_totals,
+    'Coefficient': coef_df_plot.set_index('feature')['coefficient']
+})
+
+comparison_df = comparison_df / comparison_df.abs().max()
+
+plt.figure()
+comparison_df.plot(kind='bar')
+plt.title("Normalized Spend vs Coefficient")
+plt.xticks(rotation=45)
+
+plt.savefig("Normalized Spend vs Coefficient.png")  # saves plot to a file
+plt.close()  # closes the figure to free memory
